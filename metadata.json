@@ -1,0 +1,6 @@
+
+{
+  "name": "Netball Scorer Pro",
+  "description": "A sleek and modern Progressive Web App (PWA) to keep track of scores, quarters, and game time for netball matches. Installable and offline-capable. Includes an AI-powered game summary feature using Gemini API.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,25 @@
+
+{
+  "name": "Netball Scorer Pro",
+  "short_name": "NetballScorer",
+  "description": "A sleek and modern web application to keep track of scores, quarters, and game time for netball matches. Installable and offline-capable. Includes an AI-powered game summary feature using Gemini API.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#38bdf8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
