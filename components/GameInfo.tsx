@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { MAX_QUARTERS } from '../constants';
+import { MAX_QUARTERS } from '../constants.ts'; // .ts is fine
 
 interface GameInfoProps {
   currentQuarter: number;
@@ -37,4 +36,3 @@ const GameInfo: React.FC<GameInfoProps> = ({ currentQuarter, timeRemaining, isGa
 };
 
 export default GameInfo;
-    

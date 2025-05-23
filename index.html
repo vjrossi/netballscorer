@@ -5,17 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Netball Scorer Pro</title>
   
+  <!-- IMPORTANT: Base tag for GitHub Pages. Ensure '/netballscorer/' matches your repository name exactly (case-sensitive). -->
+  <base href="/netballscorer/">
+
   <!-- PWA Manifest and Themeing -->
-  <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="./manifest.json"> <!-- Assumes manifest.json is at the root -->
   <meta name="theme-color" content="#38bdf8">
-  <!-- Standard PWA meta tag -->
+  
+  <!-- PWA meta tags -->
   <meta name="mobile-web-app-capable" content="yes">
-  <!-- iOS specific PWA meta tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Netball Scorer">
-  <link rel="apple-touch-icon" href="./assets/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192x192.png"> <!-- Assumes assets/icons is at the root -->
 
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -37,10 +41,12 @@
 <body class="bg-slate-900">
   <noscript>You need to enable JavaScript to run this app. For the best experience, use a modern browser that supports Progressive Web Apps.</noscript>
   <div id="root"></div>
-  <script type="module" src="./index.tsx"></script>
+  <!-- Adjusted script path to look inside 'src' directory -->
+  <script type="module" src="./src/index.tsx"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
+        // Assumes service-worker.js is at the root
         navigator.serviceWorker.register('./service-worker.js')
           .then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);

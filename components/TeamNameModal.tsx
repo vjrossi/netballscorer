@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import Modal from './Modal';
+import Modal from './Modal.tsx'; // Renamed from Modal.jsx
 
 interface TeamNameModalProps {
   isOpen: boolean;
@@ -55,4 +54,3 @@ const TeamNameModal: React.FC<TeamNameModalProps> = ({ isOpen, onSave }) => {
 };
 
 export default TeamNameModal;
-    

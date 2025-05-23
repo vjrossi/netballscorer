@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PlayIcon, PauseIcon, ForwardIcon, RefreshIcon, SparklesIcon } from '../icons';
+import { PlayIcon, PauseIcon, ForwardIcon, RefreshIcon, SparklesIcon } from '../icons.tsx'; // Renamed from icons.jsx
 
 interface GameControlsProps {
   isGameSetup: boolean;
@@ -15,7 +14,7 @@ interface GameControlsProps {
   onResetGame: () => void;
   onGenerateSummary: () => void;
   isLoadingSummary: boolean;
-  canIncrementDecrement: boolean; // To enable/disable score buttons via parent
+  canIncrementDecrement: boolean;
 }
 
 const GameControlButton: React.FC<{ onClick: () => void; disabled?: boolean; children: React.ReactNode; className?: string, ariaLabel: string }> = 
@@ -46,7 +45,7 @@ const GameControls: React.FC<GameControlsProps> = ({
   isLoadingSummary,
 }) => {
   if (!isGameSetup) {
-    return null; // No controls until team names are set
+    return null; 
   }
 
   return (
@@ -97,4 +96,3 @@ const GameControls: React.FC<GameControlsProps> = ({
 };
 
 export default GameControls;
-    

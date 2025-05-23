@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PlusIcon, MinusIcon } from '../icons';
+import { PlusIcon, MinusIcon } from '../icons.tsx'; // Renamed from icons.jsx
 
 interface TeamScoreProps {
   name: string;
@@ -40,4 +39,3 @@ const TeamScore: React.FC<TeamScoreProps> = ({ name, score, onIncrement, onDecre
 };
 
 export default TeamScore;
-    

@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { CloseIcon } from '../icons';
+import { CloseIcon } from '../icons.tsx'; // Renamed from icons.jsx
 
 interface ModalProps {
   isOpen: boolean;
@@ -35,7 +34,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
         </div>
         <div className="text-slate-300">{children}</div>
       </div>
-      {/* Fixed: Changed Next.js-style <style jsx global> to standard <style> tag for broader compatibility. */}
       <style>
         {`
           @keyframes modal-appear {

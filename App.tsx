@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import TeamScore from './components/TeamScore';
-import GameInfo from './components/GameInfo';
-import GameControls from './components/GameControls';
-import Modal from './components/Modal';
-import TeamNameModal from './components/TeamNameModal';
-import { generateGameSummary } from './services/geminiService';
-import { MAX_QUARTERS, QUARTER_DURATION_SECONDS } from './constants';
-import type { GameState, Team } from './types';
+import TeamScore from './components/TeamScore.tsx';
+import GameInfo from './components/GameInfo.tsx';
+import GameControls from './components/GameControls.tsx';
+import Modal from './components/Modal.tsx';
+import TeamNameModal from './components/TeamNameModal.tsx';
+import { generateGameSummary } from './services/geminiService.ts';
+import { MAX_QUARTERS, QUARTER_DURATION_SECONDS } from './constants.ts';
+import type { GameState, Team } from './types.ts';
 
 const initialTeamState = (name: string): Team => ({ name, score: 0 });
 
@@ -48,7 +47,6 @@ const App: React.FC = () => {
   }, []);
   
   useEffect(() => {
-    // Show team name modal on initial load if names not set
     if (!isGameSetup) {
         setShowTeamNameModal(true);
     }
@@ -60,7 +58,7 @@ const App: React.FC = () => {
     setTeamB(initialTeamState(nameB));
     setIsGameSetup(true);
     setShowTeamNameModal(false);
-    resetGameState(true); // Reset scores and timer etc, but keep names
+    resetGameState(true); 
   };
 
   const handleIncrementScore = useCallback((team: 'A' | 'B') => {
@@ -106,12 +104,11 @@ const App: React.FC = () => {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameStarted, isTimerRunning, timeRemaining, currentQuarter, isQuarterBreak, isGameOver, handleGameOver]);
 
 
   const handleStartGame = () => {
-    if (!isGameSetup) return; // Should not happen if modal flow is correct
+    if (!isGameSetup) return;
     setIsGameStarted(true);
     setCurrentQuarter(1);
     setTimeRemaining(QUARTER_DURATION_SECONDS);
@@ -232,4 +229,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-    
