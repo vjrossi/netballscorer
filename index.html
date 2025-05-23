@@ -9,7 +9,7 @@
   <base href="/netballscorer/">
 
   <!-- PWA Manifest and Themeing -->
-  <link rel="manifest" href="./manifest.json"> <!-- Assumes manifest.json is at the root -->
+  <link rel="manifest" href="./manifest.json"> <!-- Path relative to base href after deployment -->
   <meta name="theme-color" content="#38bdf8">
   
   <!-- PWA meta tags -->
@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Netball Scorer">
-  <link rel="apple-touch-icon" href="./assets/icons/icon-192x192.png"> <!-- Assumes assets/icons is at the root -->
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192x192.png"> <!-- Path relative to base href -->
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,12 +41,12 @@
 <body class="bg-slate-900">
   <noscript>You need to enable JavaScript to run this app. For the best experience, use a modern browser that supports Progressive Web Apps.</noscript>
   <div id="root"></div>
-  <!-- Adjusted script path to look inside 'src' directory -->
-  <script type="module" src="./src/index.tsx"></script>
+  <!-- Load the bundled JavaScript file -->
+  <script type="module" src="./bundle.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Assumes service-worker.js is at the root
+        // Path relative to base href after deployment
         navigator.serviceWorker.register('./service-worker.js')
           .then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);

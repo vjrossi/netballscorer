@@ -1,21 +1,22 @@
 {
   "name": "netball-scorer-pro",
+  "version": "1.0.0",
+  "description": "Netball Scorer Pro PWA",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "homepage": "https://vjrossi.github.io/netballscorer",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@google/genai": "^1.0.0"
+    "build": "npm run clean && mkdir -p dist && mkdir -p dist/assets/icons && esbuild index.tsx --bundle --outfile=dist/bundle.js --loader:.tsx=tsx --loader:.ts=ts --format=esm --platform=browser --jsx=automatic && cp index.html dist/index.html && cp manifest.json dist/manifest.json && cp service-worker.js dist/service-worker.js && cp -R assets/icons/* dist/assets/icons/",
+    "clean": "rm -rf dist",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.7.2",
-    "vite": "^6.2.0"
+    "esbuild": "^0.21.4",
+    "gh-pages": "^6.1.1"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

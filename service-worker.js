@@ -1,47 +1,36 @@
-const CACHE_NAME = 'netball-scorer-cache-v1';
-// Paths assume service-worker.js is at the root.
-// Source files are in 'src/', other assets are at root or in 'assets/' at the root.
+const CACHE_NAME = 'netball-scorer-cache-v2'; // Increment cache version
+// Paths are relative to the service worker's scope, which will be the root of the deployed 'dist' folder.
 const urlsToCache = [
-  './', // Root of the site (served by index.html due to base tag)
+  './', // Root of the site (index.html)
   './index.html',
+  './bundle.js', // The bundled application code
   './manifest.json',
   './assets/icons/icon-192x192.png',
   './assets/icons/icon-512x512.png',
-
-  // Files inside src directory
-  './src/index.tsx',
-  './src/App.tsx',
-  './src/components/Modal.tsx',
-  './src/components/TeamNameModal.tsx',
-  './src/components/TeamScore.tsx',
-  './src/components/GameInfo.tsx',
-  './src/components/GameControls.tsx',
-  './src/icons.tsx',
-  
-  // .ts files are fine as they are processed by esm.sh, paths relative to src
-  './src/services/geminiService.ts',
-  './src/constants.ts',
-  './src/types.ts',
-
-  // External URLs (esm.sh, cdn.tailwindcss.com) will be cached by the fetch handler if accessed
+  // Note: TailwindCSS and esm.sh imports are fetched via network and cached by the fetch handler on first use.
+  // Individual .tsx/.ts files are no longer directly fetched by the browser, so they are not listed here.
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
-        // Filter out external URLs for pre-caching, they'll be cached on first fetch.
-        const localUrlsToCache = urlsToCache.filter(url => !url.startsWith('http') && !url.startsWith('https'));
-        return cache.addAll(localUrlsToCache.map(url => new URL(url, self.location.origin).pathname))
+        console.log('Opened cache:', CACHE_NAME);
+        // Pre-cache only local assets. External assets (CDNs) will be cached on first fetch.
+        const localUrlsToCache = urlsToCache.filter(url => !url.startsWith('http'));
+        
+        // Ensure paths are correctly resolved relative to the service worker's location.
+        // For GitHub pages, if deployed from 'dist', paths like './' are relative to '/repository-name/'.
+        // The `new URL(url, self.location.origin).pathname` might be problematic if self.location.origin already has the repo sub-path.
+        // For simplicity, we assume paths in urlsToCache are directly relative to SW scope.
+        return cache.addAll(localUrlsToCache)
           .catch(error => {
              console.error('Failed to cache some local assets during install:', error);
-             // It's important to see which specific URL failed if any
+             // Attempt to fetch each failed resource individually for more detailed error logging
              localUrlsToCache.forEach(localUrl => {
-                const fullUrl = new URL(localUrl, self.location.origin).pathname;
-                fetch(fullUrl)
-                    .then(res => { if(!res.ok) console.error('Failed resource during install check:', fullUrl, res.status);})
-                    .catch(err => console.error('Network error for resource during install check:', fullUrl, err));
+                fetch(localUrl) // Fetch relative to SW scope
+                    .then(res => { if(!res.ok) console.error('Failed resource during install check:', localUrl, res.status, res.statusText);})
+                    .catch(err => console.error('Network error for resource during install check:', localUrl, err));
              });
           });
       })
@@ -58,62 +47,71 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => self.clients.claim()) 
+    }).then(() => {
+      console.log('Service worker activated and old caches cleaned.');
+      return self.clients.claim();
+    })
   );
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // For navigation requests, try network first, then cache, then offline page.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
+          // If response is valid, cache it
           if (response && response.ok && event.request.method === 'GET') {
             const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
           }
           return response;
         })
         .catch(() => {
+          // Network failed, try to serve from cache
           return caches.match(event.request)
-            .then(cachedResponse => cachedResponse || caches.match('./index.html'));
+            .then(cachedResponse => cachedResponse || caches.match('./index.html')); // Fallback to index.html
         })
     );
     return;
   }
 
+  // For other requests (assets, API calls, etc.)
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
         if (cachedResponse) {
-          return cachedResponse;
+          return cachedResponse; // Serve from cache if found
         }
+        // Not in cache, fetch from network
         return fetch(event.request).then(
-          response => {
-            if (!response || (response.status !== 200 && response.type !== 'opaque') || response.type === 'error') {
-              if (response && response.type === 'error') {
-                console.warn(`Fetch resulted in an error for: ${event.request.url}`, response);
-              }
-              return response;
+          networkResponse => {
+            // Check if the response is valid to cache
+            if (networkResponse && networkResponse.ok && event.request.method === 'GET') {
+              // For external resources (like esm.sh, tailwind cdn), check origin before caching
+              // Or simply cache all GET requests if desired
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+            } else if (networkResponse && !networkResponse.ok) {
+                console.warn(`Fetch successful but response not OK for: ${event.request.url}`, networkResponse.status, networkResponse.statusText);
             }
-            
-            const responseToCache = response.clone();
-            if (event.request.method === 'GET') { 
-                 caches.open(CACHE_NAME)
-                .then(cache => {
-                    cache.put(event.request, responseToCache);
-                });
-            }
-            return response;
+            return networkResponse;
           }
         ).catch(error => {
-          console.warn('Fetch failed (will not be cached):', event.request.url, error);
+          console.warn('Fetch failed; returning error response or offline fallback for:', event.request.url, error);
+          // Optionally, return a custom offline response for specific asset types
+          // For example, for images: return caches.match('./assets/offline-image.png');
         });
       })
   );

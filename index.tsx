@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx'; // Assuming App.tsx is the filename in the src/ directory
+import App from './App.tsx'; // This path is relative to index.tsx, processed by esbuild
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
