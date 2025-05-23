@@ -1,24 +1,23 @@
-
 const CACHE_NAME = 'netball-scorer-cache-v1';
+// Ensure all paths are relative for GitHub Pages
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/index.tsx',
-  '/App.tsx',
-  '/components/Modal.tsx',
-  '/components/TeamNameModal.tsx',
-  '/components/TeamScore.tsx',
-  '/components/GameInfo.tsx',
-  '/components/GameControls.tsx',
-  '/services/geminiService.ts',
-  '/constants.ts',
-  '/types.ts',
-  '/icons.tsx',
-  '/manifest.json',
-  '/assets/icons/icon-192x192.png',
-  '/assets/icons/icon-512x512.png',
-  'https://cdn.tailwindcss.com',
-  // Note: esm.sh URLs for React, React-DOM, and GenAI will be cached on first fetch by the fetch handler
+  './', // Represents the root of the application directory relative to service worker location
+  './index.html',
+  './index.tsx',
+  './App.tsx',
+  './components/Modal.tsx',
+  './components/TeamNameModal.tsx',
+  './components/TeamScore.tsx',
+  './components/GameInfo.tsx',
+  './components/GameControls.tsx',
+  './services/geminiService.ts',
+  './constants.ts',
+  './types.ts',
+  './icons.tsx',
+  './manifest.json',
+  './assets/icons/icon-192x192.png',
+  './assets/icons/icon-512x512.png',
+  // External URLs (esm.sh, cdn.tailwindcss.com) will be cached by the fetch handler if accessed
 ];
 
 self.addEventListener('install', event => {
@@ -26,8 +25,10 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        // Add essential local assets. External CDN assets will be cached by the fetch handler.
-        return cache.addAll(urlsToCache.filter(url => !url.startsWith('http')));
+        // Filter out external http(s) links if any were accidentally included above,
+        // though current list is fine.
+        const localUrlsToCache = urlsToCache.filter(url => !url.startsWith('http'));
+        return cache.addAll(localUrlsToCache);
       })
       .catch(error => {
         console.error('Failed to cache initial assets:', error);
@@ -46,19 +47,18 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Ensure new service worker takes control immediately
   );
-  return self.clients.claim(); // Ensure new service worker takes control immediately
 });
 
 self.addEventListener('fetch', event => {
-  // For navigation requests (HTML), try network first, then cache, then offline page (optional).
+  // For navigation requests (HTML), try network first, then cache.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // If successful, cache it (for non-OK responses, just return them)
-          if (response.ok && event.request.method === 'GET') {
+          // Check if we received a valid response
+          if (response && response.ok && event.request.method === 'GET') {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME)
               .then(cache => {
@@ -69,16 +69,15 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           // Network failed, try to serve from cache
+          // Fallback to the main page relative to the service worker's scope
           return caches.match(event.request)
-            .then(cachedResponse => {
-              return cachedResponse || caches.match('/index.html'); // Fallback to main page
-            });
+            .then(cachedResponse => cachedResponse || caches.match('./index.html'));
         })
     );
     return;
   }
 
-  // For other requests (CSS, JS, images), use cache-first, then network & cache strategy.
+  // For other requests (CSS, JS, images, etc.), use cache-first, then network & cache strategy.
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
@@ -87,16 +86,15 @@ self.addEventListener('fetch', event => {
         }
         return fetch(event.request).then(
           response => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type === 'error') {
+            // Ensure we have a valid response before caching
+            // For opaque responses (e.g. CDN no-cors), we can't check status, but still try to cache.
+            if (!response || (response.status !== 200 && response.type !== 'opaque') || response.type === 'error') {
               return response;
             }
-            // IMPORTANT: Clone the response. A response is a stream
-            // and because we want the browser to consume the response
-            // as well as the cache consuming the response, we need
-            // to clone it so we have two streams.
+            
             const responseToCache = response.clone();
-            if (event.request.method === 'GET') { // Only cache GET requests
+            // Only cache GET requests
+            if (event.request.method === 'GET') { 
                  caches.open(CACHE_NAME)
                 .then(cache => {
                     cache.put(event.request, responseToCache);
@@ -105,9 +103,9 @@ self.addEventListener('fetch', event => {
             return response;
           }
         ).catch(error => {
-          console.error('Fetch failed; returning offline fallback or error for:', event.request.url, error);
-          // Optionally, return a generic fallback for images or other assets
-          // For now, just let the browser handle the error.
+          console.error('Fetch failed for:', event.request.url, error);
+          // Optionally, return a generic fallback for specific asset types if needed
+          // e.g., if (event.request.destination === 'image') return caches.match('./assets/offline-image.png');
         });
       })
   );
